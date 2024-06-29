@@ -1,0 +1,25 @@
+{
+  "development": {
+    "username": "dev",
+    "password": "wellfish_dev",
+    "database": "well_fish_db",
+    "host": "13.229.127.197",
+    "dialect": "mysql",
+    "port": 3306
+  },
+  "test": {
+    "username": "devroot",
+    "password": "devroot123",
+    "database": "well_fish_db",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "port": 3360
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "wellfishapi",
+  "version": "1.0.0",
+  "description": "1. Use the present tense (\"Add feature\" not \"Added feature\").\r 2. Use the imperative mood (\"Move cursor to...\" not \"Moves cursor to...\").\r 3. Limit the first line to 72 characters or less.\r 4. Reference issues and pull requests liberally after the first line.\r 5. Consider starting the commit message with an applicable emoji:\r     * :art: `:art:` when improving the format/structure of the code.\r     * :racehorse: `:racehorse:` when improving performance.\r     * :non-potable_water: `:non-potable_water:` when plugging memory leaks.\r     * :memo: `:memo:` when writing docs.\r     * :fix: `:fix:` when fixing bugs.\r     * :feat: `:feat:` when adding a new feature",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Tran Thanh Tung",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "fs-extra": "^11.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mailersend": "^2.2.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.6.5",
+    "nodemailer": "^6.9.8",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.35.2",
+    "sequelize-auto": "^0.8.8",
+    "sequelize-automate": "^1.2.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "sequelize-cli": "^6.6.2"
+  }
+}

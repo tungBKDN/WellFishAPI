@@ -1,0 +1,23 @@
+{
+    "login": {
+        "LOGIN-UNDEFINED": "Username or password is UNDEFINED",
+        "LOGIN-NOT-FOUND": "Username is NOT FOUND",
+        "LOGIN-WRONG-PASSWORD": "Username is match but password is WRONG",
+        "LOGIN-SUC": "Login success"
+    },
+    
+    "usernameAvailable": {
+        "USR-AVL": "Username is available",
+        "USR-UAVL": "Username is not available"
+    },
+
+    "userRegister": {
+        "REG-SUC": "User registered successfully",
+        "EML-ERR": "Email is already in use",
+        "REG-ERR": "User registered failed"
+    },
+
+    "systemError": {
+        "SYS-ERR": "System error"
+    }
+}
