@@ -300,9 +300,38 @@ const getAllOrders_User = async (req, res) => {
     }
 }
 
+const createShippingState = async (req, res) => {
+    try {
+        const orderID = req.body.order_id;
+        const state = req.body.state;
+        if (state < 1 || state > 7) {
+            throw {
+                "http_code": 400,
+                "code": "INVALID_STATE",
+                "message": "Invalid state"
+            }
+        }
+        const result = await mCreateShippingState(orderID, state);
+        res.status(200).json({
+            "code": "CREATE_SHIPPING_STATE_OK",
+            "message": "Shipping state created",
+            "data": result
+        })
+        return;
+    } catch (error) {
+        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: An error occurs during creating shipping state', error);
+        res.status(error.http_code).json({
+            "code": error.code,
+            "message": error.message
+        })
+        return;
+    }
+}
+
 module.exports = {
     newOrder,
     Admin_GetOrders,
     getOrder_User,
-    getAllOrders_User
+    getAllOrders_User,
+    createShippingState
 }

@@ -20,10 +20,26 @@ const mGetShippingStates = async (limit = 30, offset = 0) => {
 
 const mCreateShippingState = async (orderID, state) => {
     try {
+        const existed = await db.shipping_state.findOne({ where: { order_id: orderID, state: Number(state) } });
+        if (existed != null) {
+            throw {
+                "http_code": 400,
+                "message": "This state has already been created for this order.",
+                "code": "SHIPPING_STATE_EXISTED"
+            }
+        }
         const shippingState = await db.shipping_state.create({ order_id: orderID, state: state, timestamp: new Date()});
         return shippingState;
     } catch (error) {
-        throw error;
+        if (error.code != null) {
+            throw error;
+        }
+        throw {
+            "http_code": 500,
+            "message": "An error occurred while creating the shipping state.",
+            "code": "CREATE_SHIPPING_STATE_FAILED",
+            "trace_back": error.toString(),
+        }
     }
 }
 

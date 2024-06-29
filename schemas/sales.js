@@ -37,7 +37,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     maximum_off: {
       type: DataTypes.DOUBLE,
-      allowNull: true
+      allowNull: true,
+      defaultValue: 0
     }
   }, {
     sequelize,
