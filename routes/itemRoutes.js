@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { addNewItem, getPagingItems, deleteItems, updateItem, addNewItemVarieties, getVarietiesByItemID, updateItemVarieties, deleteItemVarieties } = require('../APIs/itemAPI');
+const { addNewItem, getPagingItems, deleteItems, updateItem, addNewItemVarieties, getVarietiesByItemID, updateItemVarieties, deleteItemVarieties, updateStock } = require('../APIs/itemAPI');
 const multer = require('multer');
 const upload = multer();
 const cors = require('cors');
-
+const { authAdmin } = require('../middlewares/auth');
 
 // ITEMS
 router.route('/addItem').post(cors(), upload.single('item-image'), addNewItem)
@@ -17,5 +17,6 @@ router.route('/addItemVarieties').post(cors(), upload.single('subitem-image'), a
 router.route('/getVarietiesByItemID').get(cors(), upload.none(), getVarietiesByItemID)
 router.route('/updateItemVarieties').put(cors(), upload.none(), updateItemVarieties)
 router.route('/deleteItemVarieties').delete(cors(), upload.none(), deleteItemVarieties)
+router.route('/stock/:mode').put(cors(), upload.none(), authAdmin, updateStock)
 
 module.exports = router;

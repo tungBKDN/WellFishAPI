@@ -305,11 +305,57 @@ const mReduceStock = async (varietyID, quantity = 1) => {
     }
 }
 
+const mAlterStock = async (mode, varietyID, quantity) => {
+    try {
+        const isExisted = await db.item_varieties.findOne({
+            where: {
+                id: varietyID
+            }
+        });
+        if (!isExisted) {
+            return {
+                status_code: 404,
+                code: 'ITEMSVAR-NOTFOUND',
+                message: 'Item variety not found'
+            }
+        }
+        let newStock = 0
+        if (mode == "REDUCE" || mode == "ADD") {
+            quantity = mode == "REDUCE" ? -quantity : quantity;
+            newStock = isExisted.stock_remaining + quantity;
+        } else {
+            newStock = quantity;
+        }
+        Object.freeze(newStock);
+        const result = await db.item_varieties.update({
+            stock_remaining: newStock
+        }, {
+            where: {
+                id: varietyID
+            }
+        });
+        if (result.length == 0) {
+            throw new Error('Item variety has not been updated');
+        }
+        return {
+            status_code: 200,
+            code: 'ITEMSVAR-UPDATE-SUC',
+            message: 'Item variety has been updated successfully'
+        }
+    } catch (error) {
+        throw {
+            status_code: 500,
+            code: 'SYS-ERR',
+            message: 'System error during updating item variety'
+        }
+    }
+}
+
 module.exports = {
     mCreateItemVariable,
     mGetItemVarietiesByItemID, mGetItemVarietiesByID,
     mUpdateItemVarieties,
     mDeleteItemVarieties,
 
-    mReduceStock
+    mReduceStock, mAlterStock
 }

@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 // const multer = require('multer');
 const { newItem, getAllItems, mDeleteItem, mUpdateItem } = require('../models/itemsModel');
-const { mCreateItemVariable, mGetItemVarietiesByItemID, mUpdateItemVarieties, mDeleteItemVarieties } = require('../models/itemVariablesModel');
+const { mCreateItemVariable, mGetItemVarietiesByItemID, mUpdateItemVarieties, mDeleteItemVarieties, mAlterStock } = require('../models/itemVariablesModel');
 const { usernameAuthentification, auth } = require('../services/auth');
 const { getImage } = require('../services/pictureServices');
 
@@ -191,6 +191,48 @@ const deleteItemVarieties = async (req, res) => {
     }
 }
 
+const updateStock = async (req, res) => {
+    const mode = req.params.mode;
+    const varietyID = req.body.varietyID;
+    const quantity = parseInt(req.body.quantity);
+
+    if (varietyID == undefined || quantity < 0) {
+        return res.status(400).json({
+            code: 'PARAM-UNACCEPTED',
+            message: 'Something is wrong with the parameters'
+        });
+    }
+
+    if (!(mode == "FIXED" || mode == "ADD" || mode == "REDUCE")) {
+        return res.status(400).json({
+            code: 'PARAM-UNACCEPTED',
+            message: 'Variety ID is required'
+        });
+    }
+    try {
+        const result = await mAlterStock(mode, varietyID, quantity);
+        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', "Stock updated successfully");
+        res.status(result.status_code).json({
+            code: result.code,
+            message: result.message
+        });
+        return;
+    } catch (error) {
+        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: An error occurred while updating stock', error);
+        if (error.status_code) {
+            res.status(error.status_code).json({
+                code: error.code,
+                message: error.message
+            });
+            return;
+        }
+        res.status(500).json({
+            code: 'SYS-ERR',
+            message: 'System error during updating item variety'
+        });
+    }
+}
+
 module.exports = {
     addNewItem,
     getPagingItems,
@@ -199,5 +241,6 @@ module.exports = {
     addNewItemVarieties,
     getVarietiesByItemID,
     updateItemVarieties,
-    deleteItemVarieties
+    deleteItemVarieties,
+    updateStock
 }
