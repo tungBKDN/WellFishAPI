@@ -20,16 +20,17 @@ const login = async (req, res) => {
         res.set({
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Credentials': true,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Access-Control-Expose-Headers': 'Authorization'
         })
         const username = req.body.username;
         const password = req.body.password;
         const result = await loginCheck(username, password);
         if (result.code == 'LOGIN-SUC') {
             const token = jwt.sign({ username: username }, process.env.SECRET_ACCESS_TOKEN);
-            res.cookie('token', token, { maxAge: 900000, httpOnly: true, domain: 'localhost', path: '/' });
+            res.set('Authorization', `Bearer ${token}`);
             res.status(200).json(result);
-            return;     
+            return;
         }
         res.status(200).json(result);
     } catch (error) {
