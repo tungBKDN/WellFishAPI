@@ -1,6 +1,6 @@
-const { getImage, imageSender } = require('../services/pictureServices');
+const { getImage, sendImage } = require('../services/pictureServices');
 
-const getPicture = async (req, res) => {
+const getPictureBase64 = async (req, res) => {
     const imgName = req.params.name;
     const img = await getImage(imgName);
     if (img) {
@@ -10,8 +10,13 @@ const getPicture = async (req, res) => {
     }
 }
 
+const sendPicture = async (req, res) => {
+    const imgName = req.params.name;
+    await sendImage(imgName, res);
+}
+
 
 
 module.exports = {
-    getPicture
+    getPictureBase64, sendPicture
 }

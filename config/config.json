@@ -3,7 +3,7 @@
     "username": "dev",
     "password": "wellfish_dev",
     "database": "well_fish_db",
-    "host": "13.229.127.197",
+    "host": "54.254.178.139",
     "dialect": "mysql",
     "port": 3306
   },

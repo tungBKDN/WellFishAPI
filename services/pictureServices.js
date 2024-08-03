@@ -29,7 +29,7 @@ const saveImage = async (image) => {
 const getImage = async (imgName) => {
     const imgPath = path.join(process.env.PICTURE_PATH, imgName);
     try {
-        const img = await fs.readFileSync(imgPath);
+        const img = await fse.readFileSync(imgPath);
         return Buffer.from(img).toString('base64');
     } catch (err) {
         console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', err);
@@ -38,15 +38,19 @@ const getImage = async (imgName) => {
 }
 
 const sendImage = async (imgName, res) => {
-    const imgPath = path.join(process.env.PICTURE_PATH, imgName);
+    const imgPath = path.join(String(process.env.PICTURE_PATH), String(imgName));
     try {
-        const img = await fs.readFile(imgPath);
+        const img = await fse.readFileSync(imgPath);
         res.writeHead(200, { 'Content-Type': 'image/jpeg' });
         res.end(img, 'binary');
+        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: Picture ' + imgName + ' sent successfully');
     } catch (err) {
         console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', err);
-        res.writeHead(404, { 'Content-Type': 'text/html' });
-        res.end('404 not found');
+        res.status(404).send({
+            code: 'PICTURE_NOT_FOUND',
+            message: 'Picture not found'
+        });
+        return;
     }
 }
 
