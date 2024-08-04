@@ -209,14 +209,13 @@ const mMostOrdered = async (start, end) => {
         })
         const reorderRatePercentage = reorderRate[0][0]['reorder_rate_percentage']
         const repeatCustomers = reorderRate[0][0]['repeat_customers']
-
         const dashboardResult = {
-            'item_variety_name': itemVarName.item_variety_name,
+            'item_variety_name': itemVarName.data.item_name + ' - ' + itemVarName.data.variety_name,
             'total_orders': totalAmount,
             'reorder_rate_percentage': reorderRatePercentage,
             'repeat_customers': repeatCustomers,
-            'stock_remaining': itemVarName.stock_remaining,
-            'image': 'http://localhost:3333/public/picture/send/' + itemVarName.image_source
+            'stock_remaining': itemVarName.data.stock_remaining,
+            'image': 'http://localhost:3333/public/picture/send/' + itemVarName.data.image_source
         }
         return {
             'http_code': 200,

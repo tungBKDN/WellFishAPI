@@ -36,8 +36,8 @@ const authUser = async (req, res, next) => {
 };
 
 const authAdmin = async (req, res, next) => {
-    const authorizationToken = req.headers['authorization'];
-    const token = authorizationToken && authorizationToken.split(' ')[1];
+    const authorizationToken = req.headers['cookie'];
+    const token = authorizationToken && authorizationToken.split('=')[1];
 
     // this will pass next if the user type is "ADMIN"
     if (!token) {

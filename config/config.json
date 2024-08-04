@@ -5,7 +5,8 @@
     "database": "well_fish_db",
     "host": "54.254.178.139",
     "dialect": "mysql",
-    "port": 3306
+    "port": 3306,
+    "logging": false
   },
   "test": {
     "username": "devroot",
@@ -13,7 +14,8 @@
     "database": "well_fish_db",
     "host": "127.0.0.1",
     "dialect": "mysql",
-    "port": 3360
+    "port": 3360,
+    "logging": false
   },
   "production": {
     "username": "root",

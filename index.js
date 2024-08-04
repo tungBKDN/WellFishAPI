@@ -16,8 +16,9 @@ app.get('/', (req, res) => {
 });
 
 app.use(cors({
-    allowedHeaders: ['Content-Type'],
-    
+    origin: 'http://localhost:3000',
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Routes assigning -- START

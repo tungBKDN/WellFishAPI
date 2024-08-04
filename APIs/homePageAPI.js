@@ -69,6 +69,7 @@ const adminDashboard = async (req, res) => {
             },
             "products": products.data
         }
+        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: Dashboard data retrieved successfully');
         res.status(200).json(
             {
                 code: 'DASHBOARD-OK',
@@ -76,6 +77,7 @@ const adminDashboard = async (req, res) => {
                 data: dashboard
             }
         );
+        return;
     } catch (error) {
         if (error.http_code) {
             res.status(error.http_code).json({ code: error.code, message: error.message });
