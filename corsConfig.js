@@ -1,13 +1,13 @@
 const cors = require('cors');
 
 const indexCorsOptions = {
-    origin: ['http://localhost:3000', 'http://54.254.178.139:3000', 'http://localhost:3333', 'http://54.254.178.139:3333'],
+    origin: ['http://54.254.178.139:3000', 'http://localhost:3000', 'http://localhost:3333', 'http://54.254.178.139:3333'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Header', 'X-User-Header', 'Cookie']
 };
 
 const adminCorsOptions = {
-    origin: ['http://localhost:3000', 'http://54.254.178.139:3000', 'http://localhost:3333', 'http://54.254.178.139:3333'],
+    origin: ['http://54.254.178.139:3000', 'http://localhost:3000', 'http://localhost:3333', 'http://54.254.178.139:3333'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Header'],
 };

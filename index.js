@@ -14,12 +14,6 @@ app.get('/', (req, res) => {
 });
 
 app.use(indexCorsOptions);
-app.use((req, res, next) => {
-    fs.appendFileSync('log.txt', req.originalUrl + '\n');
-    fs.appendFileSync('log.txt', req.headers + '\n');
-    fs.appendFileSync('log.txt', '----------------------\n');
-    next();
-})
 
 // Routes assigning -- START
 app.use('/api/login', require('./routes/loginRoutes'));
