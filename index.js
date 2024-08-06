@@ -1,10 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
-const cors = require('cors');
-const http = require('http');
-const { send } = require('process');
-const { sendEmail } = require('./services/mailSender');
+const { indexCorsOptions } = require('./corsConfig')
 
 require('./services/pictureUpload');
 
@@ -15,11 +12,7 @@ app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
-app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(indexCorsOptions);
 
 // Routes assigning -- START
 app.use('/api/login', require('./routes/loginRoutes'));
