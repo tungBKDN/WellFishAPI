@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
+const fs = require('fs');
 const { indexCorsOptions } = require('./corsConfig')
 
 require('./services/pictureUpload');
