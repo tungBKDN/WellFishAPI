@@ -31,6 +31,11 @@ const login = async (req, res) => {
             await logger.logger('LOGIN-SUC', 'loginAPI', 'login', `User ${username} is validated`);
             const token = jwt.sign({ username: username }, process.env.SECRET_ACCESS_TOKEN);
             res.set('Authorization', `Bearer ${token}`);
+            res.cookie('sessionId', 'your-session-id', {
+                httpOnly: true,
+                secure: true, // Ensure this is true if you're using HTTPS
+                sameSite: 'None'
+            });
             res.status(200).json(result);
             return;
         }
