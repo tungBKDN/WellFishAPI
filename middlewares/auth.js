@@ -1,14 +1,17 @@
 const { getUserType } = require('../models/userAccountModel');
 const jwt = require('jsonwebtoken');
 require("dotenv").config({ path: './projectParameter.env' });
+const { logger } = require('../services/logger');
 
 // Define your middleware function
 const authUser = async (req, res, next) => {
+    await logger.logger('AUTH-USER-REQUEST', 'MDW-AUTH', 'User authentication requested', 'at authUser component');
     const authorizationToken = req.headers['authorization'];
     const token = authorizationToken && authorizationToken.split(' ')[1];
 
     // this will pass next if the user type is "USER"
     if (!token) {
+        await logger.logger('AUTH-USER-NO-TOKEN', 'MDW-AUTH', 'No token provided', 'at authUser component');
         return res.status(401).json({
             "code": 'NO-TOKEN',
             "message": 'No token provided'
@@ -20,14 +23,17 @@ const authUser = async (req, res, next) => {
         const userType = await getUserType(decoded.username);
 
         if (userType.type === 'USER') {
+            await logger.logger('AUTH-USER-NEXT', 'MDW-AUTH', 'User authentication success', 'at authUser component');
             next();
         } else {
+            await logger.logger('AUTH-USER-FORBIDDEN', 'MDW-AUTH', 'Access denied', 'at authUser component');
             return res.status(403).json({
                 "code": 'FORBIDDEN',
                 "message": 'Access denied'
             });
         }
     } catch (error) {
+        await logger.logger('AUTH-USER-INVALID-TOKEN', 'MDW-AUTH', 'Invalid token', 'at authUser component');
         return res.status(401).json({
             "code": 'INVALID-TOKEN',
             "message": 'Invalid token'
@@ -36,11 +42,14 @@ const authUser = async (req, res, next) => {
 };
 
 const authAdmin = async (req, res, next) => {
+    await logger.logger('AUTH-ADMIN-REQUEST', 'MDW-AUTH', 'Admin authentication requested', 'at authAdmin component');
     const authorizationToken = req.headers['cookie'];
     const token = authorizationToken && authorizationToken.split('=')[1];
+    await logger.logger('DEV', 'MDW-AUTH', 'Admin authentication requested', `Token: ${token}, Authorization: ${authorizationToken}`);
 
     // this will pass next if the user type is "ADMIN"
     if (!token) {
+        await logger.logger('AUTH-ADMIN-NO-TOKEN', 'MDW-AUTH', 'No token provided', 'at authAdmin component');
         return res.status(401).json({
             "code": 'NO-TOKEN',
             "message": 'No token provided'
@@ -52,14 +61,17 @@ const authAdmin = async (req, res, next) => {
         const userType = await getUserType(decoded.username);
 
         if (userType.type === 'ADMIN') {
+            await logger.logger('AUTH-ADMIN-NEXT', 'MDW-AUTH', 'Admin authentication success', 'at authAdmin component');
             next();
         } else {
+            await logger.logger('AUTH-ADMIN-FORBIDDEN', 'MDW-AUTH', 'Access denied', 'at authAdmin component');
             return res.status(403).json({
                 "code": 'FORBIDDEN',
                 "message": 'Access denied'
             });
         }
     } catch (error) {
+        await logger.logger('AUTH-ADMIN-INVALID-TOKEN', 'MDW-AUTH', 'Invalid token', 'at authAdmin component');
         return res.status(401).json({
             "code": 'INVALID-TOKEN',
             "message": 'Invalid token'

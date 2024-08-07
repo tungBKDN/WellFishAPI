@@ -8,6 +8,7 @@ var _orders = require("./orders");
 var _province = require("./province");
 var _sales = require("./sales");
 var _shipping_state = require("./shipping_state");
+var _syslogs = require("./syslogs");
 var _user_account = require("./user_account");
 var _user_information = require("./user_information");
 var _wards = require("./wards");
@@ -22,6 +23,7 @@ function initModels(sequelize) {
   var province = _province(sequelize, DataTypes);
   var sales = _sales(sequelize, DataTypes);
   var shipping_state = _shipping_state(sequelize, DataTypes);
+  var syslogs = _syslogs(sequelize, DataTypes);
   var user_account = _user_account(sequelize, DataTypes);
   var user_information = _user_information(sequelize, DataTypes);
   var wards = _wards(sequelize, DataTypes);
@@ -45,6 +47,7 @@ function initModels(sequelize) {
     province,
     sales,
     shipping_state,
+    syslogs,
     user_account,
     user_information,
     wards,

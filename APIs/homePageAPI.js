@@ -3,6 +3,7 @@ const { getImage } = require('../services/pictureServices');
 
 const { mGetIncomeByTime, mMostOrdered } = require('../models/orderModels');
 const { mGetShippingStatesByTime } = require('../models/shippingStatesModel');
+const logger = require('../services/logger');
 
 const getHomePage = async (req, res) => {
     try {
@@ -32,6 +33,7 @@ const getHomePage = async (req, res) => {
 
 const adminDashboard = async (req, res) => {
     try {
+        await logger.logger('DASHBOARD-ADMIN-REQUEST', 'API-DASHBOARD', 'Admin dashboard data requested', '');
         const today = new Date();
         const start = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0);
         const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
@@ -69,7 +71,7 @@ const adminDashboard = async (req, res) => {
             },
             "products": products.data
         }
-        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: Dashboard data retrieved successfully');
+        await logger.logger('DASHBOARD-ADMIN-RETRIVED', 'API', 'Admin dashboard data retrieved successfully', '');
         res.status(200).json(
             {
                 code: 'DASHBOARD-OK',

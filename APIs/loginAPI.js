@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { loginCheck } = require('../models/userAccountModel');
 require("dotenv").config({ path: './projectParameter.env'});
+const logger = require('../services/logger');
 
 
 /**
@@ -27,6 +28,7 @@ const login = async (req, res) => {
         const password = req.body.password;
         const result = await loginCheck(username, password);
         if (result.code == 'LOGIN-SUC') {
+            await logger.logger('LOGIN-SUC', 'loginAPI', 'login', `User ${username} is validated`);
             const token = jwt.sign({ username: username }, process.env.SECRET_ACCESS_TOKEN);
             res.set('Authorization', `Bearer ${token}`);
             res.status(200).json(result);
