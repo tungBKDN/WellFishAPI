@@ -4,8 +4,8 @@ const { login } = require('../APIs/loginAPI');
 const { usernameAvailable, register } = require('../APIs/registerAPI');
 const multer = require('multer');
 const upload = multer();
-const cors = require('cors');
+const { indexCorsOptions } = require('../corsConfig')
 
-router.route('/').post(cors(), upload.none(), login)
+router.route('/').post(indexCorsOptions, upload.none(), login)
 
 module.exports = router;
