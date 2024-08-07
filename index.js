@@ -13,6 +13,12 @@ app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'http://192.168.1.7:3000');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    next();
+  });
+
 app.use(indexCorsOptions);
 
 // Routes assigning -- START

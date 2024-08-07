@@ -8,7 +8,7 @@ const { authAdmin } = require('../middlewares/auth');
 const { adminCorsOptions } = require('../corsConfig');
 
 // Define allowed origins
-const allowedOrigins = ['http://localhost:3000'];
+// const allowedOrigins = ['http://localhost:3000'];
 
 // CORS configuration
 // const corsOptions = {
