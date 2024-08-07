@@ -43,8 +43,8 @@ const authUser = async (req, res, next) => {
 
 const authAdmin = async (req, res, next) => {
     await logger('AUTH-ADMIN-REQUEST', 'MDW-AUTH', 'Admin authentication requested', 'at authAdmin component');
-    const authorizationToken = req.headers['cookie'];
-    const token = authorizationToken && authorizationToken.split('=')[1];
+    const authorizationToken = req.headers['authorization'];
+    const token = authorizationToken && authorizationToken.split(' ')[1];
     await logger('DEV', 'MDW-AUTH', 'Admin authentication requested', `Token: ${token}, Authorization: ${authorizationToken}`);
 
     // this will pass next if the user type is "ADMIN"
