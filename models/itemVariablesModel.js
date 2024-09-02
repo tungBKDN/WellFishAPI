@@ -1,5 +1,7 @@
 const db = require('../schemas');
 const { saveImage, getImage, unlinkImage } = require('../services/pictureServices');
+const { logger } = require('../services/logger');
+const { http } = require('winston');
 
 const mCreateItemVariable = async (itemVar) => {
     try {
@@ -126,236 +128,259 @@ const mGetItemVarietiesByID = async (varietyID) => {
     }
 }
 
-
-
-const mUpdateItemVarieties = async (variety, image = undefined) => {
+const mGetTotalStockValue = async () => {
     try {
-        const isExisted = await db.item_varieties.findOne({
-            where: {
-                id: variety.id
-            }
-        });
-        if (isExisted === null) {
-            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable not found');
-            return {
-                statusCode: 404,
-                code: 'ITEMSVAR-UPDATE-NOTFOUND',
-                message: `Item variable with ID ${variety.id} not found`
-            }
-        }
-
-        let newImageAttr = null;
-        try {
-            if (image) {
-                newImageAttr = await saveImage(image);
-            }
-        } catch (savingError) {
-            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', savingError);
-            throw {
-                statusCode: 500,
-                code: 'SYS-ERR',
-                message: 'System error during saving image'
-            }
-        }
-        const updateData = {};
-        if (variety.varietyName) updateData.variety_name = variety.varietyName;
-        if (variety.unit) updateData.unit = variety.unit;
-        if (variety.price) updateData.price = variety.price;
-        if (variety.stockRemaining) updateData.stock_remaining = variety.stockRemaining;
-        if (newImageAttr) updateData.image_source = newImageAttr.imageSource;
-
-        const updateResult = await db.item_varieties.update(updateData, {
-            where: {
-                id: variety.id
-            }
-        });
-        if (updateResult.length == 0) {
-            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has not been updated');
-            return {
-                statusCode: 404,
-                code: 'ITEMSVAR-UPDATE-ERR',
-                message: 'Item variety has not been updated'
-            }
-        }
-        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has been updated successfully');
-        return {
-            statusCode: 200,
-            code: 'ITEMSVAR-UPDATE-SUC',
-            message: 'Item variety has been updated successfully'
-        }
+        let value = await db.sequelize.query(`
+            SELECT
+                SUM(val) as value
+            FROM
+                (SELECT
+                    price * stock_remaining AS val
+                FROM
+                    item_varieties) v
+        `);
+        value = value[0][0].value;
+        return value;
     } catch (error) {
-        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', error);
+        logger('SYS-ERR', 'itemVariablesModel.mGetTotalStockValue', error, error);
         throw {
-            statusCode: 500,
+            http_code: 500,
             code: 'SYS-ERR',
-            message: 'System error during updating item variety'
+            message: 'System error during getting total stock value',
+            trace_back: error
         }
     }
 }
 
-const mDeleteItemVarieties = async (varietyID) => {
-    try {
-        const isExisted = await db.item_varieties.findAll({
-            where: {
-                id: varietyID
-            }
-        });
-        // unlink image
+    const mUpdateItemVarieties = async (variety, image = undefined) => {
         try {
-            if (Array.isArray(varietyID)) {
-                for (let i = 0; i < isExisted.length; i++) {
-                    if (isExisted[i].image_source) {
-                        await unlinkImage(isExisted[i].image_source);
-                    }
+            const isExisted = await db.item_varieties.findOne({
+                where: {
+                    id: variety.id
                 }
-            } else {
-                if (isExisted[0].image_source) {
-                    await unlinkImage(isExisted[0].image_source);
+            });
+            if (isExisted === null) {
+                console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable not found');
+                return {
+                    statusCode: 404,
+                    code: 'ITEMSVAR-UPDATE-NOTFOUND',
+                    message: `Item variable with ID ${variety.id} not found`
                 }
             }
-        } catch (unlinkError) {
-            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', unlinkError);
-            throw {
-                statusCode: 500,
-                code: 'SYS-ERR',
-                message: 'System error during unlinking image'
+
+            let newImageAttr = null;
+            try {
+                if (image) {
+                    newImageAttr = await saveImage(image);
+                }
+            } catch (savingError) {
+                console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', savingError);
+                throw {
+                    statusCode: 500,
+                    code: 'SYS-ERR',
+                    message: 'System error during saving image'
+                }
             }
-        }
-        const deleteResult = await db.item_varieties.destroy({
-            where: {
-                id: varietyID
+            const updateData = {};
+            if (variety.varietyName) updateData.variety_name = variety.varietyName;
+            if (variety.unit) updateData.unit = variety.unit;
+            if (variety.price) updateData.price = variety.price;
+            if (variety.stockRemaining) updateData.stock_remaining = variety.stockRemaining;
+            if (newImageAttr) updateData.image_source = newImageAttr.imageSource;
+
+            const updateResult = await db.item_varieties.update(updateData, {
+                where: {
+                    id: variety.id
+                }
+            });
+            if (updateResult.length == 0) {
+                console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has not been updated');
+                return {
+                    statusCode: 404,
+                    code: 'ITEMSVAR-UPDATE-ERR',
+                    message: 'Item variety has not been updated'
+                }
             }
-        });
-        const deleteLength = Array.isArray(varietyID) ? varietyID.length : 1;
-        if (deleteResult == 0) {
-            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has not been deleted');
-            return {
-                statusCode: 404,
-                code: 'ITEMSVAR-DELETE-ERR',
-                message: 'All item varieties have not been deleted'
-            }
-        }
-        if (deleteResult != deleteLength) {
-            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Some item variables have been deleted successfully');
+            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has been updated successfully');
             return {
                 statusCode: 200,
-                code: 'ITEMSVAR-DELETE-PAR',
-                message: 'Some item variables have been deleted successfully'
+                code: 'ITEMSVAR-UPDATE-SUC',
+                message: 'Item variety has been updated successfully'
             }
-        }
-        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has been deleted successfully');
-        return {
-            statusCode: 200,
-            code: 'ITEMSVAR-DELETE-SUC',
-            message: 'Item varieties have been deleted successfully'
-        }
-    } catch (error) {
-        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', error);
-        throw {
-            statusCode: 500,
-            code: 'SYS-ERR',
-            message: 'System error during deleting item variety'
+        } catch (error) {
+            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', error);
+            throw {
+                statusCode: 500,
+                code: 'SYS-ERR',
+                message: 'System error during updating item variety'
+            }
         }
     }
-}
 
-const mReduceStock = async (varietyID, quantity = 1) => {
-    try {
-        const isExisted = await db.item_varieties.findOne({
-            where: {
-                id: varietyID
+    const mDeleteItemVarieties = async (varietyID) => {
+        try {
+            const isExisted = await db.item_varieties.findAll({
+                where: {
+                    id: varietyID
+                }
+            });
+            // unlink image
+            try {
+                if (Array.isArray(varietyID)) {
+                    for (let i = 0; i < isExisted.length; i++) {
+                        if (isExisted[i].image_source) {
+                            await unlinkImage(isExisted[i].image_source);
+                        }
+                    }
+                } else {
+                    if (isExisted[0].image_source) {
+                        await unlinkImage(isExisted[0].image_source);
+                    }
+                }
+            } catch (unlinkError) {
+                console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', unlinkError);
+                throw {
+                    statusCode: 500,
+                    code: 'SYS-ERR',
+                    message: 'System error during unlinking image'
+                }
             }
-        });
-        if (isExisted === null) {
-            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable not found');
+            const deleteResult = await db.item_varieties.destroy({
+                where: {
+                    id: varietyID
+                }
+            });
+            const deleteLength = Array.isArray(varietyID) ? varietyID.length : 1;
+            if (deleteResult == 0) {
+                console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has not been deleted');
+                return {
+                    statusCode: 404,
+                    code: 'ITEMSVAR-DELETE-ERR',
+                    message: 'All item varieties have not been deleted'
+                }
+            }
+            if (deleteResult != deleteLength) {
+                console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Some item variables have been deleted successfully');
+                return {
+                    statusCode: 200,
+                    code: 'ITEMSVAR-DELETE-PAR',
+                    message: 'Some item variables have been deleted successfully'
+                }
+            }
+            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has been deleted successfully');
             return {
-                statusCode: 404,
-                code: 'ITEMSVAR-UPDATE-NOTFOUND',
-                message: `Item variable with ID ${varietyID} not found`
+                statusCode: 200,
+                code: 'ITEMSVAR-DELETE-SUC',
+                message: 'Item varieties have been deleted successfully'
             }
-        }
-        const updateResult = await db.item_varieties.update({
-            stock_remaining: isExisted.stock_remaining - quantity
-        }, {
-            where: {
-                id: varietyID
+        } catch (error) {
+            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', error);
+            throw {
+                statusCode: 500,
+                code: 'SYS-ERR',
+                message: 'System error during deleting item variety'
             }
-        });
-        if (updateResult.length == 0) {
-            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has not been updated');
-            return {
-                statusCode: 404,
-                code: 'ITEMSVAR-UPDATE-ERR',
-                message: 'Item variety has not been updated'
-            }
-        }
-        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has been updated successfully');
-        return {
-            statusCode: 200,
-            code: 'ITEMSVAR-UPDATE-SUC',
-            message: 'Item variety has been updated successfully'
-        }
-    } catch (error) {
-        console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', error);
-        throw {
-            statusCode: 500,
-            code: 'SYS-ERR',
-            message: 'System error during updating item variety'
         }
     }
-}
 
-const mAlterStock = async (mode, varietyID, quantity) => {
-    try {
-        const isExisted = await db.item_varieties.findOne({
-            where: {
-                id: varietyID
+    const mReduceStock = async (varietyID, quantity = 1) => {
+        try {
+            const isExisted = await db.item_varieties.findOne({
+                where: {
+                    id: varietyID
+                }
+            });
+            if (isExisted === null) {
+                console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable not found');
+                return {
+                    statusCode: 404,
+                    code: 'ITEMSVAR-UPDATE-NOTFOUND',
+                    message: `Item variable with ID ${varietyID} not found`
+                }
             }
-        });
-        if (!isExisted) {
+            const updateResult = await db.item_varieties.update({
+                stock_remaining: isExisted.stock_remaining - quantity
+            }, {
+                where: {
+                    id: varietyID
+                }
+            });
+            if (updateResult.length == 0) {
+                console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has not been updated');
+                return {
+                    statusCode: 404,
+                    code: 'ITEMSVAR-UPDATE-ERR',
+                    message: 'Item variety has not been updated'
+                }
+            }
+            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', 'Item variable has been updated successfully');
             return {
-                status_code: 404,
-                code: 'ITEMSVAR-NOTFOUND',
-                message: 'Item variety not found'
+                statusCode: 200,
+                code: 'ITEMSVAR-UPDATE-SUC',
+                message: 'Item variety has been updated successfully'
             }
-        }
-        let newStock = 0
-        if (mode == "REDUCE" || mode == "ADD") {
-            quantity = mode == "REDUCE" ? -quantity : quantity;
-            newStock = isExisted.stock_remaining + quantity;
-        } else {
-            newStock = quantity;
-        }
-        Object.freeze(newStock);
-        const result = await db.item_varieties.update({
-            stock_remaining: newStock
-        }, {
-            where: {
-                id: varietyID
+        } catch (error) {
+            console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', error);
+            throw {
+                statusCode: 500,
+                code: 'SYS-ERR',
+                message: 'System error during updating item variety'
             }
-        });
-        if (result.length == 0) {
-            throw new Error('Item variety has not been updated');
-        }
-        return {
-            status_code: 200,
-            code: 'ITEMSVAR-UPDATE-SUC',
-            message: 'Item variety has been updated successfully'
-        }
-    } catch (error) {
-        throw {
-            status_code: 500,
-            code: 'SYS-ERR',
-            message: 'System error during updating item variety'
         }
     }
-}
 
-module.exports = {
-    mCreateItemVariable,
-    mGetItemVarietiesByItemID, mGetItemVarietiesByID,
-    mUpdateItemVarieties,
-    mDeleteItemVarieties,
+    const mAlterStock = async (mode, varietyID, quantity) => {
+        try {
+            const isExisted = await db.item_varieties.findOne({
+                where: {
+                    id: varietyID
+                }
+            });
+            if (!isExisted) {
+                return {
+                    status_code: 404,
+                    code: 'ITEMSVAR-NOTFOUND',
+                    message: 'Item variety not found'
+                }
+            }
+            let newStock = 0
+            if (mode == "REDUCE" || mode == "ADD") {
+                quantity = mode == "REDUCE" ? -quantity : quantity;
+                newStock = isExisted.stock_remaining + quantity;
+            } else {
+                newStock = quantity;
+            }
+            Object.freeze(newStock);
+            const result = await db.item_varieties.update({
+                stock_remaining: newStock
+            }, {
+                where: {
+                    id: varietyID
+                }
+            });
+            if (result.length == 0) {
+                throw new Error('Item variety has not been updated');
+            }
+            return {
+                status_code: 200,
+                code: 'ITEMSVAR-UPDATE-SUC',
+                message: 'Item variety has been updated successfully'
+            }
+        } catch (error) {
+            throw {
+                status_code: 500,
+                code: 'SYS-ERR',
+                message: 'System error during updating item variety'
+            }
+        }
+    }
 
-    mReduceStock, mAlterStock
-}
+    module.exports = {
+        mCreateItemVariable,
+        mGetItemVarietiesByItemID, mGetItemVarietiesByID,
+        mUpdateItemVarieties,
+        mDeleteItemVarieties,
+        mGetTotalStockValue,
+
+        mReduceStock, mAlterStock
+    }

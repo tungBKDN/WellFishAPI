@@ -3,6 +3,8 @@ const { getImage } = require('../services/pictureServices');
 
 const { mGetIncomeByTime, mMostOrdered } = require('../models/orderModels');
 const { mGetShippingStatesByTime } = require('../models/shippingStatesModel');
+const  { mGetTotalStockValue } = require('../models/itemVariablesModel')
+const { mGetShippingValue } = require('../models/orderModels')
 const logger = require('../services/logger');
 
 const getHomePage = async (req, res) => {
@@ -91,7 +93,54 @@ const adminDashboard = async (req, res) => {
     }
 }
 
+const adminRevenue = async (req, res) => {
+    try {
+        const value = await mGetTotalStockValue();
+        const shippingValue = await mGetShippingValue();
+        // Day written as yyyy-mm-dd
+        const startDay = req.query.std;
+        const endDay = req.query.ed;
+        const compareStartDay = req.query.cstd;
+        const compareEndDay = req.query.ced;
+        let revenueNow = (await mGetIncomeByTime(startDay, endDay)).income;
+        let revenueCompare = (await mGetIncomeByTime(compareStartDay, compareEndDay)).income;
+        if (revenueNow != 0) {
+            revenueCompare = revenueCompare / revenueNow * 100;
+            (revenueCompare > 100) ? revenueCompare = revenueCompare - 100 : revenueCompare = 100 - revenueCompare;
+        }
+
+        // Success
+        res.status(200).json({
+            code: 'REVENUE-OK',
+            message: 'Revenue data retrieved successfully',
+            data: {
+                "total_stock_value": value,
+                "total_shipping_value": shippingValue,
+                "revenue_now": Number(revenueNow),
+                "revenue_compare": Number(revenueCompare)
+            }
+        });
+    } catch (error) {
+        if (error.http_code == 'undefined') {
+            res.status(500).json({
+                code: 'SYS-ERR',
+                message: 'Internal server error',
+                track_back: error
+            })
+            return;
+        }
+        res.status(error.http_code).json({
+            code: error.code,
+            message: error.message,
+            trace_back: error.trace_back
+        })
+    }
+
+
+}
+
 module.exports = {
     getHomePage,
-    adminDashboard
+    adminDashboard,
+    adminRevenue
 }

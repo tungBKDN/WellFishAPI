@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 const loginCheck = async (username, password) => {
-    /* 
+    /*
     Exceptions:
     1. username or password undefied
     */
@@ -16,7 +16,7 @@ const loginCheck = async (username, password) => {
     }
 
     let user = await db.sequelize.query(
-        `SELECT user_information.first_name, user_information.last_name, user_information.email, user_account.is_admin, user_account.username, user_account.password
+        `SELECT user_information.first_name, user_information.last_name, user_information.email, user_account.is_admin, user_account.username, user_account.password, user_information.profile_picture
         FROM user_information INNER JOIN user_account ON user_information.username = user_account.username
         WHERE user_account.username = :username
         LIMIT 1`,
@@ -53,10 +53,11 @@ const loginCheck = async (username, password) => {
         'message': 'Login successfully',
         'username': user.username,
         'role': user.is_admin == 1 ? 'ADMIN' : 'USER',
-        inclulde: {
+        include: {
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'email': user.email
+            'email': user.email,
+            'profile_picture': user.profile_picture
         }
     };
 }

@@ -1,5 +1,6 @@
 const db = require('../schemas')
 const { mReduceStock, mGetItemVarietiesByID } = require('../models/itemVariablesModel')
+const { logger } = require('../services/logger')
 
 const mCreateOrder = async (orderDatas) => {
     let _result = null
@@ -123,10 +124,11 @@ const mGetIncomeByTime = async (start, end) => {
         })
         return {
             http_code: 200,
-            income: (income[0][0]['income'] == null) ? 0 : income[0][0]['income'],
+            income: (!(income[0][0]['income'])) ? 0 : income[0][0]['income'],
             order_count: income[0][0]['order_count']
         }
     } catch (error) {
+        await logger('INTERNAL_ERROR', 'OrderModels/mGetIncomeByTime', 'Internal error', error)
         throw {
             http_code: 500,
             code: 'INTERNAL_ERROR',
@@ -234,8 +236,62 @@ const mMostOrdered = async (start, end) => {
     }
 }
 
+const mGetWaitingForPurchaseOrders = async () => {
+    try {
+        const orders = await db.sequelize.query(`
+            SELECT
+                shipping_state.id, shipping_state.order_id, state, timestamp
+            FROM
+                (SELECT
+                    order_id, MAX(id) AS id
+                FROM
+                    shipping_state
+                GROUP BY order_id) max_ids
+                    INNER JOIN
+                shipping_state ON shipping_state.id = max_ids.id
+            WHERE
+                state = 'ACCEPTED'
+                    OR state = 'PREPARING'
+                    OR state = 'SHIPPING'
+                    OR state = 'ARRIVING'
+        `)
+        return orders;
+    } catch (error) {
+        await logger('INTERNAL_ERROR', 'OrderModels/mGetWaitingForPurchaseOrders', 'Internal error', error)
+        throw {
+            http_code: 500,
+            code: 'INTERNAL_ERROR',
+            message: 'Internal error',
+            trace_back: error
+        }
+    }
+}
+
+const mGetShippingValue = async () => {
+    try {
+        // Get id collumn only
+        const waitingOrder = await mGetWaitingForPurchaseOrders();
+        const orderIDs = waitingOrder[0].map(e => e.order_id);
+        const orders = await db.orders.findAll({ where: { id: orderIDs } });
+        const shippingValue = orders.reduce((acc, cur) => {
+            return acc + JSON.parse(cur.costs_JSON).base_cost - JSON.parse(cur.costs_JSON).sales_discount - JSON.parse(cur.costs_JSON).voucher_discount - cur.coin_used;
+        }, 0)
+        return shippingValue;
+    } catch (error) {
+        await logger('INTERNAL_ERROR', 'OrderModels', 'Internal error', error)
+        throw {
+            http_code: 500,
+            code: 'INTERNAL_ERROR',
+            message: 'Internal error',
+            trace_back: error
+        }
+    }
+}
+
 module.exports = {
     mCreateOrder,
     mGetAllOrders, mGetOrder, mGetPersonalOrders,
-    mGetIncomeByTime, mMostOrdered
+    mGetIncomeByTime, mMostOrdered,
+
+    mGetShippingValue
 }

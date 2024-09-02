@@ -54,6 +54,7 @@ const authAdmin = async (req, res, next) => {
             "code": 'NO-TOKEN',
             "message": 'No token provided'
         });
+        return;
     }
 
     try {

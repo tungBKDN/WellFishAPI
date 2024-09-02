@@ -2,6 +2,11 @@ const db = require('../schemas');
 
 const logger = async (code = '', component = '', message = '', traceback = '') => {
     try {
+        code = String(code);
+        component = String(component);
+        message = String(message);
+        traceback = String(traceback);
+
         timestamp = new Date().toISOString();
         const log = new db.syslogs({
             timestamp: timestamp,
