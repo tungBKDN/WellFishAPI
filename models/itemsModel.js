@@ -1,7 +1,7 @@
 const db = require('../schemas');
 const fse = require('fs-extra');
 const path = require('path');
-const {} = require('./itemVariablesModel');
+const { } = require('./itemVariablesModel');
 const { saveImage } = require('../services/pictureServices');
 
 const newItem = async (item) => {
@@ -37,16 +37,33 @@ const newItem = async (item) => {
     }
 }
 
-const getAllItems = async (offset = 0, limit = 10) => {
+const getItems = async (text = '', offset = 0, limit = 10) => {
     try {
-        const items = await db.items.findAll({
-            offset: offset,
-            limit: limit,
-            order: [['name', 'ASC']]
-        });
+        const items = await db.sequelize.query(`
+            SELECT
+                items.id, items.name as product_name, max as product_high_price, min as product_low_price, items.image_source as product_image
+            FROM
+                items
+                    INNER JOIN
+                (SELECT
+                    item_id, MAX(price) as max, MIN(price) as min
+                FROM
+                    item_varieties
+                GROUP BY item_id) r
+                ON items.id = r.item_id
+            WHERE name LIKE '%${text}%'
+            ORDER BY product_name ASC
+            LIMIT ${limit}
+            OFFSET ${offset};`, {
+                replacements: {
+                    text: text,
+                    limit: limit,
+                    offset: offset * limit
+                }
+            });
         return {
             code: 'ITEMS-GET-OK',
-            data: items
+            data: items[0]
         };
     } catch (error) {
         console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: ', error);
@@ -66,7 +83,7 @@ const mDeleteItem = async (itemID) => {
                 id: itemID
             }
         });
-        const item_variety_ids = db.item_varieties .findAll({
+        const item_variety_ids = db.item_varieties.findAll({
             where: {
                 item_id: {
                     [Op.in]: [
@@ -178,7 +195,7 @@ const mUpdateItem = async (itemID, modifiedInfos) => {
 
 module.exports = {
     newItem,
-    getAllItems,
+    getItems,
     mDeleteItem,
     mUpdateItem
 }

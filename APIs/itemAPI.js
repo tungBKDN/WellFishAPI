@@ -1,9 +1,10 @@
 const jwt = require('jsonwebtoken');
 // const multer = require('multer');
-const { newItem, getAllItems, mDeleteItem, mUpdateItem } = require('../models/itemsModel');
+const { newItem, getItems, mDeleteItem, mUpdateItem } = require('../models/itemsModel');
 const { mCreateItemVariable, mGetItemVarietiesByItemID, mUpdateItemVarieties, mDeleteItemVarieties, mAlterStock } = require('../models/itemVariablesModel');
 const { usernameAuthentification, auth } = require('../services/auth');
 const { getImage } = require('../services/pictureServices');
+const { search } = require('../routes/itemRoutes');
 
 const addNewItem = async (req, res) => {
     // Use auth to check for the username in the token
@@ -74,14 +75,32 @@ const updateItem = async (req, res) => {
 }
 
 const searchItem = async (req, res) => {
-    const searchText = req.body.searchText;
-    //TODO: search item
+    const searchText = req.query.text;
+    const offset = req.query.offset;
+    // Fixed limit is 30
+    try {
+        const result = await getItems(searchText, offset, 30);
+        if (result.code != 'ITEMS-GET-OK') {
+            res.status(404).json({
+                code: 'ITEMS-GET-OK',
+                message: 'No items found'
+            });
+            return;
+        }
+        res.status(200).json({
+            code: result.code,
+            message: result.message,
+            data: result.data
+        })
+    } catch (error) {
+        res.status(500).json(error);
+    }
 }
 
 const getPagingItems = async (req, res) => {
     const offset = req.params.offset;
     try {
-        const result = await getAllItems(offset);
+        const result = await getItems('', offset);
         for (let i = 0; i < result.data.length; i++) {
             if (result.data[i].image_source === null) continue;
             result.data[i].image_source = await getImage(result.data[i].image_source);
@@ -242,5 +261,6 @@ module.exports = {
     getVarietiesByItemID,
     updateItemVarieties,
     deleteItemVarieties,
-    updateStock
+    updateStock,
+    searchItem
 }
