@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-// const multer = require('multer');
 const { newItem, getItems, mDeleteItem, mUpdateItem } = require('../models/itemsModel');
 const { mCreateItemVariable, mGetItemVarietiesByItemID, mUpdateItemVarieties, mDeleteItemVarieties, mAlterStock } = require('../models/itemVariablesModel');
 const { usernameAuthentification, auth } = require('../services/auth');
@@ -15,7 +14,7 @@ const addNewItem = async (req, res) => {
     const item = {
         name: req.body.name,
         description: req.body.description,
-        image: req.file
+        image: req.body.file
     }
     try {
         const result = await newItem(item);

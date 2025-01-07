@@ -3,12 +3,11 @@ const path = require('path');
 require("dotenv").config({ path: './projectParameter.env' });
 
 const saveImage = async (image) => {
-    const imageName = image.originalname.split('.')[0];
-    const extension = image.originalname.split('.').pop();
-    let newImageName = `${imageName}_${new Date().toISOString().replace(/:/g, '-').replace(/T/g, '_').substring(0, 19)}.${extension}`;
+    let newImageName = new Date().toISOString().replace(/:/g, '-').replace(/T/g, '_').substring(0, 19) + '.jpg';
     let imageSource = path.join(process.env.PICTURE_PATH, newImageName);
+    console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: Saving picture ' + newImageName);
     try {
-        await fse.writeFile(imageSource, image.buffer);
+        await fse.writeFile(imageSource, image, 'base64');
         console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: Picture ' + newImageName + ' saved successfully');
     } catch (savingError) {
         console.log('[' + new Date().toISOString().replace('T', ' ').substring(0, 19) + ']: An error occured during saving picure ' + newImageName + ' with traceback: \n', savingError);
